@@ -31,10 +31,46 @@ class AudioPlayerApp:
         self.volume = 1.0  # Initial volume is set to full (1.0)
         pygame.mixer.music.set_volume(self.volume)
 
+        
+
+    
+
     def create_widgets(self):
-        # Title Label
+
+        menu_bar = tk.Menu(self.root)
+
+    # File menu
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="Load Audio", command=self.load_audio)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.root.quit)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+
+
+    # Set the menu bar
+        self.root.config(menu=menu_bar)
+
+    # Title Label
         self.title_label = tk.Label(self.root, text="Audio Player", font=("Helvetica", 16))
         self.title_label.pack(pady=10)
+
+        def onselect(evt):
+    # Note here that Tkinter passes an event object to onselect()
+            w = evt.widget
+            index = int(w.curselection()[0])
+            value = w.get(index)
+            print('You selected item %d: "%s"' % (index, value))
+
+            self.current_audio_file = value
+
+    # Audio File Listbox
+        self.file_listbox = tk.Listbox(self.root, selectmode=tk.SINGLE, height=10, width=40)
+        self.file_listbox.pack(pady=10)
+        self.file_listbox.bind("<ButtonRelease-1>", self.select_file)
+        self.file_listbox.bind("<B1-Motion>", self.drag_file)
+        self.file_listbox.bind('<<ListboxSelect>>', onselect)
+        # Title Label
+        
 
         # Audio File Label
         self.file_label = tk.Label(self.root, text="No file loaded", font=("Helvetica", 12))
@@ -57,23 +93,59 @@ class AudioPlayerApp:
         self.load_button = tk.Button(self.root, text="Load Audio File", command=self.load_audio, width=15)
         self.load_button.pack(pady=20)
 
+    def select_file(self, event):
+        """Select a file from the listbox."""
+        try:
+            selected_index = self.file_listbox.curselection()[0]
+            self.current_audio_file = self.file_listbox.get(selected_index)
+            self.file_label.config(text=f"Selected: {os.path.basename(self.current_audio_file)}")
+        except IndexError:
+            pass  # No file selected
+
+    def drag_file(self, event):
+        """Enable drag-and-drop within the listbox."""
+        try:
+        # Get the index of the item being dragged
+            selected_index = self.file_listbox.curselection()[0]
+            dragged_item = self.file_listbox.get(selected_index)
+
+        # Find the target index based on the mouse position
+            target_index = self.file_listbox.nearest(event.y)
+
+        # Prevent dropping the item on itself
+            if selected_index != target_index:
+            # Remove the item and reinsert it at the target position
+                self.file_listbox.delete(selected_index)
+                self.file_listbox.insert(target_index, dragged_item)
+
+            # Keep the selection on the moved item
+                self.file_listbox.select_set(target_index)
+        except IndexError:
+            pass
     def load_audio(self):
-        """Load an audio file."""
-        file_path = filedialog.askopenfilename(
-            title="Select an Audio File",
+        """Load multiple audio files at once."""
+        file_paths = filedialog.askopenfilenames(
+            title="Select Audio Files",
             filetypes=(("Audio Files", "*.mp3 *.wav"), ("All Files", "*.*"))
         )
-        if file_path:
-            self.current_audio_file = file_path
-            self.file_label.config(text=f"Loaded: {os.path.basename(file_path)}")
+        if file_paths:
+            # Add each selected file to the listbox
+            for file_path in file_paths:
+                if file_path not in self.file_listbox.get(0, tk.END):  # Avoid duplicate entries
+                    self.file_listbox.insert(tk.END, file_path)
+                    #self.file_listbox.on
         else:
-            messagebox.showerror("Error", "No file selected")
+            messagebox.showinfo("Info", "No files selected")
 
     def play_audio(self):
+
+        
+
         """Play the loaded audio file."""
         if not self.current_audio_file:
             messagebox.showerror("Error", "No audio file loaded")
             return
+    
 
         if self.is_paused:  # If paused, unpause
             pygame.mixer.music.unpause()
@@ -161,7 +233,11 @@ class AudioPlayerApp:
     def speech_recognition_thread(self):
         """Thread function for speech recognition."""
         recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
+
+        micro = sr.Microphone()
+        print(micro.list_working_microphones())
+        print(len(micro.list_working_microphones()))
+        with sr.Microphone(0) as source:
             print("Speech recognition started. Say 'play', 'pause', 'resume', or 'stop' to control the player.")
             recognizer.adjust_for_ambient_noise(source)
             while True:
@@ -176,6 +252,7 @@ class AudioPlayerApp:
     
 
                     command = recognizer.recognize_google(audio).lower()
+                    recognizer.recognize_tensorflow(audio_data=audio)
                     print(f"Recognized command: {command}")
 
                     if "play" in command:
