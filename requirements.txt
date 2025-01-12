@@ -1,0 +1,9 @@
+sounddevice
+pyaudio
+pvporcupine
+SpeechRecognition
+pygame
+word2number
+numpy
+vector
+pyquaternion
