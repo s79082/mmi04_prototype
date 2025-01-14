@@ -25,21 +25,17 @@ class AudioPlayerApp:
         # Create UI components
         self.create_widgets()
 
-        # Start the speech recognition thread
-        self.start_speech_recognition()
+        # Start the speech recognition threads
+        #self.start_speech_recognition()
 
         self.volume = 1.0  # Initial volume is set to full (1.0)
         pygame.mixer.music.set_volume(self.volume)
-
-        
-
-    
 
     def create_widgets(self):
 
         menu_bar = tk.Menu(self.root)
 
-    # File menu
+        # File menu
         file_menu = tk.Menu(menu_bar, tearoff=0)
         file_menu.add_command(label="Load Audio", command=self.load_audio)
         file_menu.add_separator()
@@ -47,15 +43,15 @@ class AudioPlayerApp:
         menu_bar.add_cascade(label="File", menu=file_menu)
 
 
-    # Set the menu bar
+        # Set the menu bar
         self.root.config(menu=menu_bar)
 
-    # Title Label
+        # Title Label
         self.title_label = tk.Label(self.root, text="Audio Player", font=("Helvetica", 16))
         self.title_label.pack(pady=10)
 
         def onselect(evt):
-    # Note here that Tkinter passes an event object to onselect()
+            # Note here that Tkinter passes an event object to onselect()
             w = evt.widget
             index = int(w.curselection()[0])
             value = w.get(index)
@@ -63,7 +59,7 @@ class AudioPlayerApp:
 
             self.current_audio_file = value
 
-    # Audio File Listbox
+        # Audio File Listbox
         self.file_listbox = tk.Listbox(self.root, selectmode=tk.SINGLE, height=10, width=40)
         self.file_listbox.pack(pady=10)
         self.file_listbox.bind("<ButtonRelease-1>", self.select_file)
@@ -77,8 +73,15 @@ class AudioPlayerApp:
         self.file_label.pack(pady=10)
 
         # Control Buttons
+
+        self.prev_button = tk.Button(self.root, text="prev", command=self.prev_audio, width=10)
+        self.prev_button.pack(side="left", padx=5)
+
         self.play_button = tk.Button(self.root, text="Play", command=self.play_audio, width=10)
         self.play_button.pack(side="left", padx=5)
+
+        self.next_button = tk.Button(self.root, text="next", command=self.next_audio, width=10)
+        self.next_button.pack(side="left", padx=5)
 
         self.pause_button = tk.Button(self.root, text="Pause", command=self.pause_audio, width=10)
         self.pause_button.pack(side="left", padx=5)
@@ -122,6 +125,7 @@ class AudioPlayerApp:
                 self.file_listbox.select_set(target_index)
         except IndexError:
             pass
+
     def load_audio(self):
         """Load multiple audio files at once."""
         file_paths = filedialog.askopenfilenames(
@@ -138,9 +142,6 @@ class AudioPlayerApp:
             messagebox.showinfo("Info", "No files selected")
 
     def play_audio(self):
-
-        
-
         """Play the loaded audio file."""
         if not self.current_audio_file:
             messagebox.showerror("Error", "No audio file loaded")
@@ -176,6 +177,34 @@ class AudioPlayerApp:
             self.is_paused = False
             self.file_label.config(text="Stopped")
 
+    def prev_audio(self):
+        selected_index = self.file_listbox.curselection()[0]
+        print(selected_index)
+        new_index = selected_index - 1
+        print(new_index)
+
+        self.current_audio_file = self.file_listbox.get(new_index)
+        self.play_audio()
+
+        self.file_listbox.select_set(str(new_index))
+        self.file_listbox.selection_clear(str(selected_index))
+
+        self.highlight_button(self.prev_button)
+
+    def next_audio(self):
+        selected_index = self.file_listbox.curselection()[0]
+        print(selected_index)
+        new_index = selected_index + 1
+        print(new_index)
+
+        self.current_audio_file = self.file_listbox.get(new_index)
+        self.play_audio()
+
+        self.file_listbox.select_set(str(new_index))
+        self.file_listbox.selection_clear(str(selected_index))
+
+        self.highlight_button(self.next_button)
+
     def highlight_button(self, button):
         """Highlight a button for 2 seconds."""
         original_color = button.cget("bg")
@@ -185,15 +214,6 @@ class AudioPlayerApp:
     def start_speech_recognition(self):
         """Start the speech recognition in a separate thread."""
         threading.Thread(target=self.speech_recognition_thread, daemon=True).start()
-
-    def calculate_rms(self, audio_data):
-        """Calculate RMS (Root Mean Square) energy of the audio data."""
-        # Convert the binary audio data into an array of signed 16-bit integers
-        audio_samples = np.array(struct.unpack("<" + "h" * (len(audio_data) // 2), audio_data), dtype=np.int16)
-
-        # Calculate RMS (Root Mean Square)
-        rms = np.sqrt(np.mean(np.square(audio_samples)))
-        return rms
     
     def lower_volume(self, command):
         """Lower the volume based on the command."""
