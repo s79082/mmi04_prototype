@@ -5,12 +5,15 @@ Tracks hand movements to detect two gestures
 import leap
 import time
 import os
+import tkinter as tk
 
 import numpy as np
 from leap.datatypes import Hand, Palm
 import leap.datatypes
 import vector
 from pyquaternion import Quaternion
+
+from audioplayerapp import AudioPlayerApp
 
 def clear():
     os.system('cls')
@@ -60,6 +63,11 @@ class MyListener(leap.Listener):
     swipe_start: vector.VectorObject3D = None
     swipe_last_time = 0
     swipe_already_detected = False
+
+    app: AudioPlayerApp = None
+
+    def __init__(self, app: AudioPlayerApp):
+        self.app = app
     
     def on_connection_event(self, event):
         print("Connected")
@@ -124,6 +132,10 @@ class MyListener(leap.Listener):
                         self.swipe_counter += 1
                         self.swipe_already_detected = True
                         print(f"{swipe_direction} Swipe detected")
+                        if swipe_direction == "left":
+                            self.app.prev_audio()
+                        elif swipe_direction == "right":
+                            self.app.next_audio()
                     else:
                         pass
                         #print(distance)
@@ -181,21 +193,20 @@ class MyListener(leap.Listener):
             # Detect swipe: hand grap_strength < 0.1 && vertical orientation && move far enough vertical
 
 def main():
-    my_listener = MyListener()
+
+    root = tk.Tk()
+    app = AudioPlayerApp(root)
+
+    my_listener = MyListener(app)
 
     connection = leap.Connection()
     connection.add_listener(my_listener)
 
-    running = True
-
     with connection.open():
         #connection.set_tracking_mode(leap.TrackingMode.Desktop)
         connection.set_tracking_mode(leap.TrackingMode.ScreenTop)
-        while running:
-            try:
-                time.sleep(1)
-            except:
-                running = False
+
+        root.mainloop()
 
 
 if __name__ == "__main__":
