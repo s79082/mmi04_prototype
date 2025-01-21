@@ -31,7 +31,7 @@ class MediaPlayer:
         self.buttons = {}
 
         self.setup_ui()
-        self.window.mainloop()
+        #self.window.mainloop()
 
     def load_song_list(self):
         OUTPUT_PATH = Path(__file__).parent

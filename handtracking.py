@@ -137,9 +137,9 @@ class MyListener(leap.Listener):
                         self.swipe_already_detected = True
                         print(f"{swipe_direction} Swipe detected")
                         if swipe_direction == "left":
-                            self.app.prev_audio()
+                            self.app.previous_music()
                         elif swipe_direction == "right":
-                            self.app.next_audio()
+                            self.app.skip_music()
                     else:
                         pass
                         #print(distance)
