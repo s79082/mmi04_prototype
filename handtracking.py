@@ -13,7 +13,7 @@ import leap.datatypes
 import vector
 from pyquaternion import Quaternion
 
-from audioplayerapp import AudioPlayerApp
+from UI import refactored
 
 def clear():
     os.system('cls')
@@ -64,9 +64,9 @@ class MyListener(leap.Listener):
     swipe_last_time = 0
     swipe_already_detected = False
 
-    app: AudioPlayerApp = None
+    app: refactored.MediaPlayer = None
 
-    def __init__(self, app: AudioPlayerApp):
+    def __init__(self, app: refactored.MediaPlayer):
         self.app = app
     
     def on_connection_event(self, event):
@@ -106,6 +106,10 @@ class MyListener(leap.Listener):
                         grab_direction = "down" if distance > 0 else "up"
                         self.volume_grab_already_detected = True
                         print(f"{grab_direction} Swipe detected")
+                        if grab_direction == "up":
+                            self.app.increase_volume()
+                        elif grab_direction == "down":
+                            self.app.lower_volume()
                     else:
                         pass
                         #print(distance)
@@ -195,7 +199,7 @@ class MyListener(leap.Listener):
 def main():
 
     root = tk.Tk()
-    app = AudioPlayerApp(root)
+    app = refactored.MediaPlayer(root)
 
     my_listener = MyListener(app)
 
