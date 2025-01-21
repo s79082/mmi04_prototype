@@ -6,4 +6,6 @@
 2. Follow the Installation workflow [here](https://github.com/ultraleap/leapc-python-bindings/blob/main/README.md#missing-compiled-module), to compile and install the leap python library.
 3. Then eighter create a virtual environment or install the projects requirements globally, using `pip install -r requirements.txt`.
 
-test
+## Ausführen
+
+`python handtracking.py`

@@ -6,7 +6,7 @@ from pygame import mixer
 import speech_recognition as sr
 
 class MediaPlayer:
-    def __init__(self, root):
+    def __init__(self, root: Tk):
         # Initialization
         mixer.init()
         self.current_volume = 0.5
